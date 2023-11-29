@@ -29,11 +29,10 @@ export const App = () => {
       (currentPage - 1) * pageSize(),
       currentPage * pageSize()
     );
-    console.log("重新渲染了");
     const pageBtns = new Array(Math.ceil(totalCount / pageSize())).fill(null);
     return (
       <div data="1" class="div">
-        <input value={name()} onChange={handleTextChange} type="text" />
+        <input value={name()} onInput={handleTextChange} type="text" />
         <button onClick={handleAdd}>添加</button>
         <ul>
           {currentPageList.map((name) => {

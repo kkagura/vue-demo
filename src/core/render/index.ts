@@ -1,4 +1,5 @@
 import { createEffect, createReactive } from "../reactive";
+import { queueJob } from "../scheduler";
 import { ComponentInstance, Text, VNode, VNodeProps } from "../vnode";
 
 interface EventInvoker {
@@ -184,12 +185,17 @@ function mountComponent(node: VNode, container: RenderElement) {
     subtree: null,
   });
   const render = (node.type as Function)(props());
-  instance.effectState = createEffect(() => {
-    instance.propState.props = props();
-    const subtree = render();
-    patch(instance.subtree, subtree, container);
-    instance.subtree = subtree;
-  });
+  instance.effectState = createEffect(
+    () => {
+      instance.propState.props = props();
+      const subtree = render();
+      patch(instance.subtree, subtree, container);
+      instance.subtree = subtree;
+    },
+    {
+      scheduler: queueJob,
+    }
+  );
 }
 
 function patchComponent(n1: VNode, n2: VNode, container: RenderElement) {
@@ -250,10 +256,15 @@ export function createApp(rootComponent: any) {
     mount(container: HTMLElement | null) {
       if (!container) return;
       const rootRender = rootComponent();
-      createEffect(() => {
-        const rootNode = rootRender();
-        render(rootNode, container as RenderElement);
-      });
+      createEffect(
+        () => {
+          const rootNode = rootRender();
+          render(rootNode, container as RenderElement);
+        },
+        {
+          scheduler: queueJob,
+        }
+      );
     },
   };
   return app;
