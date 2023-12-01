@@ -1,3 +1,4 @@
+import { h } from "../h";
 import { createEffect, createReactive } from "../reactive";
 import { queueJob } from "../scheduler";
 import { ComponentInstance, Text, VNode, VNodeProps } from "../vnode";
@@ -255,16 +256,8 @@ export function createApp(rootComponent: any) {
   const app = {
     mount(container: HTMLElement | null) {
       if (!container) return;
-      const rootRender = rootComponent();
-      createEffect(
-        () => {
-          const rootNode = rootRender();
-          render(rootNode, container as RenderElement);
-        },
-        {
-          scheduler: queueJob,
-        }
-      );
+      const root = h(rootComponent, null, []);
+      render(root, container as RenderElement);
     },
   };
   return app;

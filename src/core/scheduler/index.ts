@@ -3,9 +3,9 @@ const resolvedPromise = Promise.resolve();
 const jobQueue = new Set<Function>();
 
 export function queueJob(job: Function) {
+  jobQueue.add(job);
   if (isFlushing) return;
   isFlushing = true;
-  jobQueue.add(job);
   resolvedPromise
     .then(() => {
       jobQueue.forEach((job) => job());
