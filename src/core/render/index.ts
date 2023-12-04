@@ -1,7 +1,8 @@
 import { h } from "../h";
 import { createEffect, createReactive } from "../reactive";
 import { queueJob } from "../scheduler";
-import { ComponentInstance, Text, VNode, VNodeProps } from "../vnode";
+import { Text, VNode, VNodeProps } from "../vnode";
+import { ComponentInstance, setCurrentInstance } from "./component";
 
 interface EventInvoker {
   origin: Function;
@@ -22,6 +23,23 @@ function unmount(vnode: VNode) {
   if (el) {
     el.parentNode?.removeChild(el);
   }
+}
+
+function normalizeCls(clsValue: any) {
+  if (Array.isArray(clsValue)) {
+    return clsValue.join(" ");
+  }
+  if (typeof clsValue === "object") {
+    const keys = Object.keys(clsValue);
+    const cls: any = [];
+    keys.forEach((el) => {
+      if (!!clsValue[el]) {
+        cls.push(el);
+      }
+    });
+    return cls.join("");
+  }
+  return clsValue;
 }
 
 function patchProp(el: RenderElement, key: string, newValue: any) {
@@ -49,7 +67,7 @@ function patchProp(el: RenderElement, key: string, newValue: any) {
       }
     }
   } else if (key === "class") {
-    el.className = newValue;
+    el.className = normalizeCls(newValue);
   } else if (key in el) {
     (el as any)[key] = newValue;
   } else {
@@ -185,7 +203,9 @@ function mountComponent(node: VNode, container: RenderElement) {
     },
     subtree: null,
   });
+  setCurrentInstance(instance);
   const render = (node.type as Function)(props());
+  setCurrentInstance(null);
   instance.effectState = createEffect(
     () => {
       instance.propState.props = props();

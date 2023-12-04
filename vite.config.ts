@@ -7,7 +7,7 @@ export default defineConfig({
   },
   esbuild: {
     jsxFactory: "createElement",
-    jsxInject: "import { createElement } from '@/core/compile'",
+    jsxInject: "import { createElement, createFragment } from '@/core/compile'",
     jsxFragment: "createFragment",
     jsx: "transform",
   },

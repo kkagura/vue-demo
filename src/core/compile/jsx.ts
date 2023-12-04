@@ -1,4 +1,5 @@
 import { h } from "../h";
+import { Fragment } from "../vnode";
 
 export function createElement(
   comp: Function | string,

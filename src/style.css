@@ -1,9 +1,11 @@
 body {
   margin: 0;
-}
-.font-red {
-  color: red;
-}
-.font-green {
-  color: green;
+  --color-primary: #409eff;
+  --color-primary-light-9: #ecf5ff;
+  --color-danger: #f56c6c;
+  --color-danger-light-9: #fef0f0;
+  --text-black: #606266;
+  --text-white: #fff;
+  --border-color: #dcdfe6;
+  --bg-color: #fff;
 }

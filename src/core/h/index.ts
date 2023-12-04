@@ -1,7 +1,7 @@
 import { VNode, Text } from "../vnode";
 
 export function h(
-  comp: Function | string,
+  comp: Function | string | Symbol,
   props: Record<string, any> | null,
   ...children: any[]
 ): VNode {

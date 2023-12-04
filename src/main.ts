@@ -18,14 +18,14 @@ import { createApp } from "./core/render";
 // setText1("text1 changed");
 // setText2("text2 changed");
 
-import { App } from "./view/App";
+import { App } from "./App";
 const app = createApp(App);
 app.mount(document.getElementById("app"));
 
-const [name, setName] = createReactive("wang jian");
-const effectState = createEffect(() => {
-  console.log(name());
-});
-setName("wang jian2");
-effectState.stop();
-setName("wang jian3");
+// const [name, setName] = createReactive("wang jian");
+// const effectState = createEffect(() => {
+//   console.log(name());
+// });
+// setName("wang jian2");
+// effectState.stop();
+// setName("wang jian3");

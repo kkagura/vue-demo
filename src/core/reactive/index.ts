@@ -6,11 +6,11 @@ interface Setter<T> {
   (newValue: T): void;
 }
 
-interface Reader<T> {
+export interface Reader<T> {
   (): T;
 }
 
-interface Writer<T> {
+export interface Writer<T> {
   (val: T | Setter<T>): void;
 }
 
