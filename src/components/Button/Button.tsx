@@ -25,7 +25,7 @@ const Button: Component<ButtonProps> = (props) => {
     }
     return (
       <button onClick={onClick} class={cls}>
-        {props.text}
+        <slot>{props.text}</slot>
       </button>
     );
   };
