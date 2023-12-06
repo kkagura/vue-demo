@@ -9,14 +9,14 @@ export const App = () => {
   const [checked, setChecked] = createReactive(true);
   return () => (
     <div>
-      <Button onClick={onClick} type="primary" text={"123"}>
-        ddd
+      <Button onClick={onClick} type="primary">
+        <p>sdas</p>sdasd
       </Button>
-      {/* <Checkbox
+      <Checkbox
         checked={checked()}
         onChange={setChecked}
         label="是大叔大叔大叔"
-      ></Checkbox> */}
+      ></Checkbox>
     </div>
   );
 };

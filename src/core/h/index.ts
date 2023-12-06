@@ -1,4 +1,5 @@
-import { VNode, Text } from "../vnode";
+import { RenderContext } from "../render";
+import { VNode, Text, Slot } from "../vnode";
 
 export function h(
   comp: Function | string | Symbol,

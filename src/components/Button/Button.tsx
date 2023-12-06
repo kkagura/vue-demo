@@ -18,14 +18,14 @@ const Button: Component<ButtonProps> = (props) => {
     emit("onClick", e);
   };
 
-  return () => {
+  return (context) => {
     const cls: string[] = [ns.b()];
     if (props.type) {
       cls.push(ns.is(props.type, true));
     }
     return (
       <button onClick={onClick} class={cls}>
-        <slot>{props.text}</slot>
+        {context.renderSlot("default", "默认按钮")}
       </button>
     );
   };

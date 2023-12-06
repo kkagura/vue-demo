@@ -8,6 +8,7 @@ export interface VNodeProps {
 
 export const Text = Symbol();
 export const Fragment = Symbol();
+export const Slot = "w:slot";
 
 export interface VNode {
   type: string | Function | Symbol;

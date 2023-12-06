@@ -1,3 +1,4 @@
+import { RenderContext } from ".";
 import { ReactiveEffect, Reader, Writer } from "../reactive";
 import { VNode } from "../vnode";
 export interface ComponentInstance<Props = any> {
@@ -9,7 +10,9 @@ export interface ComponentInstance<Props = any> {
   subtree: VNode | null;
 }
 
-export type Component<T> = (props: T) => () => JSX.IntrinsicElements;
+export type Component<T> = (
+  props: T
+) => (context: RenderContext) => JSX.IntrinsicElements;
 
 let currentInstance: ComponentInstance | null = null;
 

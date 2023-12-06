@@ -1,5 +1,5 @@
 import { h } from "../h";
-import { Fragment } from "../vnode";
+import { Fragment, Slot } from "../vnode";
 
 export function createElement(
   comp: Function | string,
