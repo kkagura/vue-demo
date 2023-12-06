@@ -1,4 +1,4 @@
-import { Component } from "@/core/render/component";
+import { Component, useEmit } from "@/core/render/component";
 import { useNamespace } from "@/utils/usNamespace";
 import "./checkbox.less";
 
@@ -10,9 +10,12 @@ interface CheckboxProps {
   onChange?: (val: boolean) => void;
 }
 const Checkbox: Component<CheckboxProps> = (props) => {
+  const emit = useEmit<{
+    (e: "change", val: boolean): void;
+  }>();
   const changeState = () => {
     const val = !props.checked;
-    props.onChange?.(val);
+    emit("change", val);
   };
 
   return () => {

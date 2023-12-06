@@ -29,8 +29,9 @@ export function useEmit<T = any>(): T {
     throw new Error("当前实例不存在");
   }
   const instance = currentInstance;
-  const emit = ((event: any, payload: any) => {
-    const eventHandler = instance.propState.props?.[event];
+  const emit = ((event: string, payload: any) => {
+    const propName = "on" + event.slice(0, 1).toUpperCase() + event.slice(1);
+    const eventHandler = instance.propState.props?.[propName];
     if (eventHandler) {
       eventHandler(payload);
     }

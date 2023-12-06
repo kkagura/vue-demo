@@ -11,11 +11,11 @@ interface ButtonProps {
 }
 const Button: Component<ButtonProps> = (props) => {
   const emit = useEmit<{
-    (e: "onClick", payload: MouseEvent): void;
+    (e: "click", payload: MouseEvent): void;
   }>();
 
   const onClick = (e: MouseEvent) => {
-    emit("onClick", e);
+    emit("click", e);
   };
 
   return (context) => {

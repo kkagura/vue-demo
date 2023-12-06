@@ -1,3 +1,18 @@
+/*
+  z-index 规范
+  伪类：1[-4]
+  页面绝对定位元素 5[-9]
+  页面吸顶/固定定位元素：10[-20]
+  drawer/modal: 1000[-1009]
+  message/notification: 1010[-1029]
+  popover：1030[-1039]
+  dropContent: 1050[-1059]
+  popconfirm: 1060[-1069]
+  tooltip: 1070[-1079]
+  activityDialog: 1080[-1099] 活动弹窗，同一时间应该保持只存在一个活动弹窗,
+  toast：2080[-2099] 反馈提示，应该高于所有
+ */
+
 body {
   margin: 0;
   --color-primary: #409eff;
@@ -9,6 +24,7 @@ body {
   --border-color: #dcdfe6;
   --bg-color: #fff;
   --font-size: 14px;
+  --overlay-bg-color-light: rgba(0, 0, 0, 0.5);
 }
 * {
   box-sizing: border-box;

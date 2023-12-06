@@ -7,13 +7,14 @@
   background-color: var(--button-bg-color);
   border: 1px solid var(--button-border-color);
   font-size: var(--button-font-size);
+  height: 32px;
+  line-height: 1;
   --button-font-size: var(--font-size);
   --button-text-color: var(--text-black);
   --button-bg-color: var(--bg-color);
   --button-border-color: var(--border-color);
   &:hover {
     --button-text-color: var(--color-primary);
-    --button-bg-color: var(--color-primary-light-9);
     --button-border-color: var(--color-primary);
   }
   &.is-danger {
@@ -33,5 +34,8 @@
       --button-text-color: var(--text-white);
       --button-bg-color: var(--color-primary);
     }
+  }
+  &+.w-button {
+    margin-left: 12px;
   }
 }
