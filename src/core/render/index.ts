@@ -3,6 +3,8 @@ import { createEffect, createReactive } from "../reactive";
 import { queueJob } from "../scheduler";
 import { Slot, Text, VNode, VNodeProps } from "../vnode";
 import { ComponentInstance, setCurrentInstance } from "./component";
+const svgNS = "http://www.w3.org/2000/svg";
+const xlinkNS = "http://www.w3.org/1999/xlink";
 
 interface EventInvoker {
   origin: Function;
@@ -47,7 +49,12 @@ function render(vnode: VNode | null, container: RenderElement) {
     return clsValue;
   }
 
-  function patchProp(el: RenderElement, key: string, newValue: any) {
+  function patchProp(
+    el: RenderElement,
+    key: string,
+    newValue: any,
+    isSvg: boolean
+  ) {
     // on开头的当作事件去处理
     if (/^on/.test(key)) {
       const invokers = el.__invokers || (el.__invokers = {});
@@ -72,14 +79,33 @@ function render(vnode: VNode | null, container: RenderElement) {
         }
       }
     } else if (key === "class") {
-      el.className = normalizeCls(newValue);
+      const cls = normalizeCls(newValue);
+      if (!cls) {
+        el.removeAttribute("class");
+      } else if (isSvg) {
+        el.setAttribute("class", cls);
+      } else {
+        el.className = cls;
+      }
     } else if (key in el) {
       (el as any)[key] = newValue;
     } else {
+      const useNs = key.startsWith("xlink:");
+      if (useNs) {
+        console.log("xxx");
+      }
       if (newValue == null) {
-        el.removeAttribute(key);
+        if (isSvg && useNs) {
+          el.removeAttributeNS(xlinkNS, key.slice(6, key.length));
+        } else {
+          el.removeAttribute(key);
+        }
       } else {
-        el.setAttribute(key, newValue);
+        if (isSvg && useNs) {
+          el.setAttributeNS(xlinkNS, key, newValue);
+        } else {
+          el.setAttribute(key, newValue);
+        }
       }
     }
   }
@@ -87,7 +113,8 @@ function render(vnode: VNode | null, container: RenderElement) {
   function patchProps(
     el: RenderElement,
     oldProps: VNodeProps | null,
-    newProps: VNodeProps | null
+    newProps: VNodeProps | null,
+    isSvg: boolean
   ) {
     oldProps = oldProps || {};
     newProps = newProps || {};
@@ -95,12 +122,12 @@ function render(vnode: VNode | null, container: RenderElement) {
       const newVal = newProps[key];
       const oldVal = oldProps[key];
       if (newVal !== oldVal) {
-        patchProp(el, key, newVal);
+        patchProp(el, key, newVal, isSvg);
       }
     }
     for (const key in oldProps) {
       if (!(key in newProps)) {
-        patchProp(el, key, null);
+        patchProp(el, key, null, isSvg);
       }
     }
   }
@@ -109,11 +136,16 @@ function render(vnode: VNode | null, container: RenderElement) {
     return n1.type === n2.type;
   }
 
-  function patchChildren(container: RenderElement, n1: VNode, n2: VNode) {
+  function patchChildren(
+    container: RenderElement,
+    n1: VNode,
+    n2: VNode,
+    isSvg: boolean
+  ) {
     if (!Array.isArray(n1.children)) {
       if (Array.isArray(n2.children)) {
         container.textContent = "";
-        n2.children.forEach((child) => patch(null, child, container));
+        n2.children.forEach((child) => patch(null, child, container, isSvg));
       } else {
         container.textContent = n2.children.toString();
       }
@@ -130,10 +162,10 @@ function render(vnode: VNode | null, container: RenderElement) {
         if ((oldChild as VNode)?.__vnode) {
           if ((newChild as VNode).__vnode) {
             if (isSameVNode(oldChild, newChild)) {
-              patch(oldChild as VNode, newChild as VNode, container);
+              patch(oldChild as VNode, newChild as VNode, container, isSvg);
             } else {
               unmount(oldChild);
-              patch(null, newChild, container);
+              patch(null, newChild, container, isSvg);
             }
           } else {
             unmount(oldChild);
@@ -142,7 +174,7 @@ function render(vnode: VNode | null, container: RenderElement) {
           }
         } else {
           if ((newChild as VNode).__vnode) {
-            patch(null, newChild as VNode, container);
+            patch(null, newChild as VNode, container, isSvg);
           } else {
             const textNode = document.createTextNode(newChild.toString());
             container.appendChild(textNode);
@@ -160,10 +192,10 @@ function render(vnode: VNode | null, container: RenderElement) {
     }
   }
 
-  function patchElement(n1: VNode, n2: VNode) {
+  function patchElement(n1: VNode, n2: VNode, isSvg: boolean) {
     const el = (n2.el = n1.el)!;
-    patchProps(el, n1.props, n2.props);
-    patchChildren(el, n1, n2);
+    patchProps(el, n1.props, n2.props, isSvg);
+    patchChildren(el, n1, n2, isSvg);
   }
 
   function normalizeSlots(node: VNode): Record<string, (scope: any) => any> {
@@ -196,19 +228,27 @@ function render(vnode: VNode | null, container: RenderElement) {
     return slots;
   }
 
-  function mountElement(vnode: VNode, container: RenderElement) {
+  function mountElement(
+    vnode: VNode,
+    container: RenderElement,
+    isSvg: boolean
+  ) {
     if (typeof vnode.type === "string") {
-      const el = document.createElement(vnode.type) as RenderElement;
+      const el = (
+        isSvg
+          ? document.createElementNS(svgNS, vnode.type)
+          : document.createElement(vnode.type)
+      ) as RenderElement;
       vnode.el = el;
       container.appendChild(el);
       if (Array.isArray(vnode.children)) {
         vnode.children.forEach((child) => {
-          patch(null, child as VNode, el);
+          patch(null, child as VNode, el, isSvg);
         });
       } else {
         el.textContent = vnode.children.toString();
       }
-      patchProps(el, null, vnode.props);
+      patchProps(el, null, vnode.props, isSvg);
     }
   }
 
@@ -237,7 +277,7 @@ function render(vnode: VNode | null, container: RenderElement) {
     function renderEffect() {
       instance.propState.props = props();
       const subtree = render(renderContext);
-      patch(instance.subtree, subtree, container);
+      patch(instance.subtree, subtree, container, false);
       instance.subtree = subtree;
     }
     instance.effectState = createEffect(renderEffect.bind(node), {
@@ -256,7 +296,13 @@ function render(vnode: VNode | null, container: RenderElement) {
     }
   }
 
-  function patch(n1: VNode | null, n2: VNode, container: RenderElement) {
+  function patch(
+    n1: VNode | null,
+    n2: VNode,
+    container: RenderElement,
+    isSvg: boolean
+  ) {
+    isSvg = isSvg || n2.type === "svg";
     if (n1 && n1.type !== n2.type) {
       unmount(n1);
       n1 = null;
@@ -265,9 +311,9 @@ function render(vnode: VNode | null, container: RenderElement) {
     const { type } = n2;
     if (typeof type === "string") {
       if (!n1) {
-        mountElement(n2, container);
+        mountElement(n2, container, isSvg);
       } else {
-        patchElement(n1, n2);
+        patchElement(n1, n2, isSvg);
       }
     } else if (typeof type === "function") {
       if (!n1) {
@@ -290,7 +336,7 @@ function render(vnode: VNode | null, container: RenderElement) {
     }
   }
   if (vnode) {
-    patch(container.__vnode, vnode, container);
+    patch(container.__vnode, vnode, container, false);
   } else {
     if (container.__vnode) unmount(container.__vnode);
   }
