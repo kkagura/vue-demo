@@ -1,0 +1,32 @@
+.w-input {
+  width: 100%;
+  display: inline-flex;
+  --input-height: 32px;
+  padding: 0 1px;
+  &__wrapper {
+    display: inline-flex;
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    box-shadow: 0 0 0 1px var(--border-color);
+    height: var(--input-height);
+    padding: 1px 11px;
+    transition: all .3s;
+    &.is-focus {
+
+    box-shadow: 0 0 0 1px var(--color-primary);
+    }
+  }
+  &__inner {
+    --input-inner-height: calc(var(--input-height) - 2px);;
+    height: var(--input-inner-height);
+    line-height: var(--input-inner-height);
+    flex-grow: 1;
+    padding: 0;
+    outline: 0;
+    border: none;
+    background: 0 0;
+    color: var(--text-black);
+  }
+}

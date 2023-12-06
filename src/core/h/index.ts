@@ -20,7 +20,7 @@ export function h(
     }
   });
   return {
-    props: props || null,
+    props: props || {},
     type: comp,
     children,
     el: null,
