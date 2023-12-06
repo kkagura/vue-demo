@@ -1,0 +1,27 @@
+.todo-list {
+  width: 480px;
+  padding-left: 20px;
+  .todo-list-item {
+    display: flex;
+    align-items: center;
+    line-height: 48px;
+    .todo-list-name {
+      margin-left: 12px;
+      flex: 1;
+      overflow: hidden;
+      white-space: nowrap;
+      word-break: break-all;
+      text-overflow: ellipsis;
+    }
+
+    &.is-resolved {
+      .todo-list-name {
+        text-decoration: line-through;
+        color: #aeaeae;
+      }
+    }
+    .iconfont {
+      margin-left: 12px;
+    }
+  }
+}

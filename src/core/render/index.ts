@@ -44,7 +44,7 @@ function render(vnode: VNode | null, container: RenderElement) {
           cls.push(el);
         }
       });
-      return cls.filter(Boolean).join("");
+      return cls.filter(Boolean).join(" ");
     }
     return clsValue;
   }
@@ -91,9 +91,6 @@ function render(vnode: VNode | null, container: RenderElement) {
       (el as any)[key] = newValue;
     } else {
       const useNs = key.startsWith("xlink:");
-      if (useNs) {
-        console.log("xxx");
-      }
       if (newValue == null) {
         if (isSvg && useNs) {
           el.removeAttributeNS(xlinkNS, key.slice(6, key.length));
@@ -302,13 +299,13 @@ function render(vnode: VNode | null, container: RenderElement) {
     container: RenderElement,
     isSvg: boolean
   ) {
-    isSvg = isSvg || n2.type === "svg";
     if (n1 && n1.type !== n2.type) {
       unmount(n1);
       n1 = null;
     }
     if (!n2) return;
     const { type } = n2;
+    isSvg = isSvg || type === "svg";
     if (typeof type === "string") {
       if (!n1) {
         mountElement(n2, container, isSvg);

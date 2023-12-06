@@ -5,7 +5,7 @@ import "./checkbox.less";
 const ns = useNamespace("checkbox");
 
 interface CheckboxProps {
-  checked: boolean;
+  value: boolean;
   label?: string;
   onChange?: (val: boolean) => void;
 }
@@ -14,12 +14,12 @@ const Checkbox: Component<CheckboxProps> = (props) => {
     (e: "change", val: boolean): void;
   }>();
   const changeState = () => {
-    const val = !props.checked;
+    const val = !props.value;
     emit("change", val);
   };
 
   return () => {
-    const cls: string[] = [ns.b(), ns.is("checked", props.checked)];
+    const cls: string[] = [ns.b(), ns.is("checked", props.value)];
     return (
       <div onClick={changeState} class={cls}>
         <span class={ns.e("input")}>

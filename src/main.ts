@@ -1,4 +1,6 @@
-import "./style.css";
+import "./assets/component.less";
+import "./assets/common.less";
+import "./assets/iconfont";
 
 import { createEffect, createReactive } from "./core/reactive";
 import { createApp } from "./core/render";
