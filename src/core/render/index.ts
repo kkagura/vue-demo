@@ -258,13 +258,14 @@ function render(vnode: VNode | null, container: RenderElement) {
         setProps,
       },
       subtree: null,
+      vnode: node,
     });
     setCurrentInstance(instance);
     const render = (node.type as Function)(props());
-    const slots = normalizeSlots(node);
     setCurrentInstance(null);
     const renderContext: RenderContext = {
       renderSlot(slotName, defaultNode, scope) {
+        const slots = normalizeSlots(instance.vnode);
         const res = slots[slotName]?.(scope);
         if ((Array.isArray(res) && res.length === 0) || !res)
           return defaultNode;
@@ -284,6 +285,7 @@ function render(vnode: VNode | null, container: RenderElement) {
 
   function patchComponent(n1: VNode, n2: VNode, container: RenderElement) {
     const instance = (n2.instance = n1.instance);
+    if (instance) instance.vnode = n2;
     if (instance?.propState.props && n2.props) {
       // 应该遍历
       instance.propState.setProps((props: any) => {
