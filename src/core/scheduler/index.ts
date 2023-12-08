@@ -15,3 +15,9 @@ export function queueJob(job: Function) {
       jobQueue.clear();
     });
 }
+
+export function nextTick() {
+  return new Promise((resolve) => {
+    setTimeout(resolve);
+  });
+}
