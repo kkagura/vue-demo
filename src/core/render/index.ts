@@ -254,7 +254,7 @@ function render(vnode: VNode | null, container: RenderElement) {
     const instance: ComponentInstance = (node.instance = {
       effectState: null,
       propState: {
-        props: null,
+        props,
         setProps,
       },
       subtree: null,
@@ -273,12 +273,13 @@ function render(vnode: VNode | null, container: RenderElement) {
       },
     };
     function renderEffect() {
-      instance.propState.props = props();
+      // 触发依赖收集
+      props();
       const subtree = render(renderContext);
       patch(instance.subtree, subtree, container, false);
       instance.subtree = subtree;
     }
-    instance.effectState = createEffect(renderEffect.bind(node), {
+    instance.effectState = createEffect(renderEffect, {
       scheduler: queueJob,
     });
   }
@@ -287,7 +288,7 @@ function render(vnode: VNode | null, container: RenderElement) {
     const instance = (n2.instance = n1.instance);
     if (instance) instance.vnode = n2;
     if (instance?.propState.props && n2.props) {
-      // 应该遍历
+      // 应该遍历判断是否有属性变更，避免无用的渲染
       instance.propState.setProps((props: any) => {
         // 子组件props不能解构 否则丢失响应式
         Object.assign(props, n2.props);

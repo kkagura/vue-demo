@@ -1,13 +1,21 @@
-import { Component, useEmit } from "@/core/render/component";
+import {
+  Component,
+  getCurrentInstance,
+  useEmit,
+} from "@/core/render/component";
 import Overlay from "../Overlay/Overlay";
 import { useNamespace } from "@/utils/usNamespace";
 import Button from "../Button/Button";
 import "./dialog.less";
+import { createEffect } from "@/core/reactive";
+import { nextTick } from "@/core/scheduler";
 
 const ns = useNamespace("dialog");
 interface DialogProps {
   visible?: boolean;
   onClose?: () => void;
+  onConfirm?: () => void;
+  onOpen?: () => void;
   title?: string;
   width?: string;
 }
@@ -16,19 +24,32 @@ const Dialog: Component<DialogProps> = (props) => {
   const emit = useEmit<{
     (e: "close"): void;
     (e: "confirm"): void;
+    (e: "open"): void;
   }>();
+  const instance = getCurrentInstance<DialogProps>();
+  let oldVisible = false;
+  createEffect(() => {
+    const p = instance!.propState.props();
+    if (p.visible && !oldVisible) {
+      nextTick().then(() => emit("open"));
+    }
+    oldVisible = !!p.visible;
+  });
+  const onClose = async () => {
+    emit("close");
+  };
   return (context) => {
     const widthStyle = `width:${props.width || "60vw"}`;
     const defaultFooter = (
       <div>
-        <Button onClick={() => emit("close")}>取消</Button>
+        <Button onClick={onClose}>取消</Button>
         <Button onClick={() => emit("confirm")} type="primary">
           确认
         </Button>
       </div>
     );
     return (
-      <Overlay onClose={() => emit("close")} visible={props.visible}>
+      <Overlay onClose={onClose} visible={props.visible}>
         <div style={widthStyle} class={ns.b()}>
           <div class={ns.e("header")}>
             <span class={ns.e("title")}>{props.title || ""}</span>
