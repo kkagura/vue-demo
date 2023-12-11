@@ -9,6 +9,7 @@ import Button from "../Button/Button";
 import "./dialog.less";
 import { createEffect } from "@/core/reactive";
 import { nextTick } from "@/core/scheduler";
+import Transition from "@/core/render/Transition.tsx";
 
 const ns = useNamespace("dialog");
 interface DialogProps {
@@ -49,17 +50,25 @@ const Dialog: Component<DialogProps> = (props) => {
       </div>
     );
     return (
-      <Overlay onClose={onClose} visible={props.visible}>
-        <div style={widthStyle} class={ns.b()}>
-          <div class={ns.e("header")}>
-            <span class={ns.e("title")}>{props.title || ""}</span>
-          </div>
-          <div class={ns.e("content")}>{context.renderSlot("default")}</div>
-          <div class={ns.e("footer")}>
-            {context.renderSlot("footer", defaultFooter)}
-          </div>
-        </div>
-      </Overlay>
+      <Transition name="dialog-fade" type="animation">
+        {props.visible ? (
+          <Overlay onClose={onClose} visible={props.visible}>
+            <div className={ns.b("overlay")}>
+              <div style={widthStyle} class={ns.b()}>
+                <div class={ns.e("header")}>
+                  <span class={ns.e("title")}>{props.title || ""}</span>
+                </div>
+                <div class={ns.e("content")}>
+                  {context.renderSlot("default")}
+                </div>
+                <div class={ns.e("footer")}>
+                  {context.renderSlot("footer", defaultFooter)}
+                </div>
+              </div>
+            </div>
+          </Overlay>
+        ) : null}
+      </Transition>
     );
   };
 };

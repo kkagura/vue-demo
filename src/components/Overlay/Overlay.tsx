@@ -13,14 +13,12 @@ const Overlay: Component<OverlayProps> = (props) => {
   const b = ns.b();
   const emit = useEmit<{
     (e: "close"): void;
-    (e: "clickOverlay"): void;
   }>();
   const onClickOverlay = (e: MouseEvent) => {
     const target = e.target;
     if (target instanceof HTMLElement) {
       if (target.classList.contains(b)) {
         emit("close");
-        emit("clickOverlay");
       }
     }
   };

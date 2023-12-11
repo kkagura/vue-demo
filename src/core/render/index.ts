@@ -17,6 +17,7 @@ export interface RenderElement extends HTMLElement {
 }
 
 export interface RenderContext {
+  slots: Record<string, (scope: any) => any>;
   renderSlot: (slotName: string, defaultNode?: any, scope?: any) => any;
 }
 
@@ -28,15 +29,23 @@ function render(vnode: VNode | null, container: RenderElement) {
     }
     const el = vnode.el;
     if (el) {
-      el.parentNode?.removeChild(el);
+      const performanceRemove = () => {
+        el.parentNode?.removeChild(el);
+      };
+      const { transitionHook } = vnode;
+      if (transitionHook) {
+        transitionHook.leave(el, performanceRemove);
+      } else {
+        performanceRemove();
+      }
     }
   }
 
   function normalizeCls(clsValue: any) {
+    let classArray: string[] = [];
     if (Array.isArray(clsValue)) {
-      return clsValue.filter(Boolean).join(" ");
-    }
-    if (typeof clsValue === "object") {
+      classArray = clsValue.filter(Boolean);
+    } else if (typeof clsValue === "object") {
       const keys = Object.keys(clsValue);
       const cls: any = [];
       keys.forEach((el) => {
@@ -44,9 +53,12 @@ function render(vnode: VNode | null, container: RenderElement) {
           cls.push(el);
         }
       });
-      return cls.filter(Boolean).join(" ");
+      classArray = cls.filter(Boolean);
+    } else if (typeof clsValue === "string") {
+      classArray = [clsValue];
     }
-    return clsValue;
+    classArray = [...new Set(classArray)];
+    return classArray;
   }
 
   function patchProp(
@@ -79,7 +91,7 @@ function render(vnode: VNode | null, container: RenderElement) {
         }
       }
     } else if (key === "class") {
-      const cls = normalizeCls(newValue);
+      const cls = normalizeCls(newValue).join(" ");
       if (!cls) {
         el.removeAttribute("class");
       } else if (isSvg) {
@@ -231,13 +243,17 @@ function render(vnode: VNode | null, container: RenderElement) {
     isSvg: boolean
   ) {
     if (typeof vnode.type === "string") {
+      const { transitionHook } = vnode;
       const el = (
         isSvg
           ? document.createElementNS(svgNS, vnode.type)
           : document.createElement(vnode.type)
       ) as RenderElement;
       vnode.el = el;
+      patchProps(el, null, vnode.props, isSvg);
+      transitionHook?.beforeEnter(el);
       container.appendChild(el);
+      transitionHook?.enter(el);
       if (Array.isArray(vnode.children)) {
         vnode.children.forEach((child) => {
           patch(null, child as VNode, el, isSvg);
@@ -245,25 +261,14 @@ function render(vnode: VNode | null, container: RenderElement) {
       } else {
         el.textContent = vnode.children.toString();
       }
-      patchProps(el, null, vnode.props, isSvg);
     }
   }
 
-  function mountComponent(node: VNode, container: RenderElement) {
-    const [props, setProps] = createReactive(node.props);
-    const instance: ComponentInstance = (node.instance = {
-      effectState: null,
-      propState: {
-        props,
-        setProps,
-      },
-      subtree: null,
-      vnode: node,
-    });
-    setCurrentInstance(instance);
-    const render = (node.type as Function)(props());
-    setCurrentInstance(null);
+  function mountComponent(vnode: VNode, container: RenderElement) {
+    const [props, setProps] = createReactive(vnode.props);
+
     const renderContext: RenderContext = {
+      slots: {},
       renderSlot(slotName, defaultNode, scope) {
         const slots = normalizeSlots(instance.vnode);
         const res = slots[slotName]?.(scope);
@@ -272,10 +277,25 @@ function render(vnode: VNode | null, container: RenderElement) {
         return res;
       },
     };
+    const instance: ComponentInstance = (vnode.instance = {
+      effectState: null,
+      propState: {
+        props,
+        setProps,
+      },
+      subtree: null,
+      vnode,
+    });
+    setCurrentInstance(instance);
+    const render = (vnode.type as Function)(props());
+    setCurrentInstance(null);
     function renderEffect() {
       // 触发依赖收集
       props();
       const subtree = render(renderContext);
+      if (vnode.transitionHook) {
+        subtree.transitionHook = vnode.transitionHook;
+      }
       patch(instance.subtree, subtree, container, false);
       instance.subtree = subtree;
     }
@@ -302,7 +322,7 @@ function render(vnode: VNode | null, container: RenderElement) {
     container: RenderElement,
     isSvg: boolean
   ) {
-    if (n1 && n1.type !== n2.type) {
+    if (n1 && n1.type !== n2?.type) {
       unmount(n1);
       n1 = null;
     }
