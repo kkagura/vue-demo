@@ -1,5 +1,6 @@
-import TodoList from "./views/TodoList";
+import TodoList from "./views/todo-list/TodoList";
+import TestTransition from "./views/test/TestTransition";
 
 export const App = () => {
-  return () => <TodoList></TodoList>;
+  return () => <TestTransition></TestTransition>;
 };
