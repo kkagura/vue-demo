@@ -15,8 +15,8 @@ const TestTransition = () => {
   return () => (
     <div>
       <div onClick={toggleTab}>切换</div>
-      <Transition name="fade">
-        {tab() === "a" ? <Button>aaaa</Button> : null}
+      <Transition mode="out-in" name="fade">
+        {tab() === "a" ? <Button>aaaa</Button> : <p>dddddd</p>}
       </Transition>
     </div>
   );

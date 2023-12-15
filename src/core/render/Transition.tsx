@@ -11,6 +11,7 @@ export interface TransitionHook {
 interface TransitionProps {
   name?: string;
   type?: "transition" | "animation";
+  mode?: "default" | "out-in";
   onBeforeEnter?: (el: RenderElement) => void;
   onEnter?: (el: RenderElement) => void;
   onAfterEnter?: (el: RenderElement) => void;
@@ -31,6 +32,8 @@ const Transition: Component<TransitionProps> = (props) => {
     (e: "leave", el: RenderElement): void;
     (e: "afterLeave", el: RenderElement): void;
   }>();
+  let isLeaving = false;
+  const instance = getCurrentInstance();
   return (context) => {
     const type = props.type || "transition";
     const endEventName = type + "end";
@@ -78,6 +81,10 @@ const Transition: Component<TransitionProps> = (props) => {
               el.removeEventListener(endEventName, afterLeave);
               performanceRemove();
               emit("afterLeave", el);
+              isLeaving = false;
+              if (props.mode === "out-in") {
+                instance?.update();
+              }
             };
             el.addEventListener(endEventName, afterLeave);
           });
@@ -85,6 +92,10 @@ const Transition: Component<TransitionProps> = (props) => {
       };
       vnode.transitionHook = transitionHook;
     }
+    if (isLeaving && props.mode === "out-in") {
+      return null;
+    }
+    isLeaving = true;
     return vnode;
   };
 };

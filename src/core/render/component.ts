@@ -9,6 +9,7 @@ export interface ComponentInstance<Props = any> {
   };
   subtree: VNode | null;
   vnode: VNode;
+  update: Function;
 }
 
 export type Component<T> = (

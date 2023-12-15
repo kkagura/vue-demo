@@ -285,6 +285,7 @@ function render(vnode: VNode | null, container: RenderElement) {
       },
       subtree: null,
       vnode,
+      update: () => {},
     });
     setCurrentInstance(instance);
     const render = (vnode.type as Function)(props());
@@ -299,6 +300,7 @@ function render(vnode: VNode | null, container: RenderElement) {
       patch(instance.subtree, subtree, container, false);
       instance.subtree = subtree;
     }
+    instance.update = renderEffect;
     instance.effectState = createEffect(renderEffect, {
       scheduler: queueJob,
     });
