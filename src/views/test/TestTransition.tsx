@@ -1,5 +1,5 @@
 import { createReactive } from "@/core/reactive";
-import Transition from "@/core/render/Transition";
+import { Transition } from "@/core";
 import Button from "@/components/Button/Button";
 import "./testTransition.less";
 

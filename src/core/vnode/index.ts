@@ -1,7 +1,6 @@
-import { RenderElement } from "../render";
-import { ReactiveEffect } from "../reactive";
-import { ComponentInstance } from "../render/component";
-import { TransitionHook } from "../render/Transition";
+import { RenderElement } from "../runtime/render";
+import { ComponentInstance } from "../runtime/component";
+import { TransitionHook } from "../runtime/Transition";
 
 export interface VNodeProps {
   [key: string]: any;

@@ -1,7 +1,6 @@
-import { Component } from "@/core/render/component";
+import { Component, createReactive } from "@/core";
 import { useNamespace } from "@/utils/usNamespace";
 import "./input.less";
-import { createReactive } from "@/core/reactive";
 
 const ns = useNamespace("input");
 

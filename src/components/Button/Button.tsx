@@ -1,7 +1,6 @@
 import { useNamespace } from "@/utils/usNamespace";
 import "./button.less";
-import { Reader, createMemo } from "@/core/reactive";
-import { Component, useEmit } from "@/core/render/component";
+import { Component, useEmit } from "@/core";
 
 const ns = useNamespace("button");
 interface ButtonProps {

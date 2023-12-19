@@ -1,4 +1,4 @@
-import { RenderContext } from ".";
+import { RenderContext } from "./render";
 import { ReactiveEffect, Reader, Writer } from "../reactive";
 import { VNode } from "../vnode";
 export interface ComponentInstance<Props = any> {

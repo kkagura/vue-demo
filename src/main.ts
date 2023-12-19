@@ -3,7 +3,7 @@ import "./assets/common.less";
 import "./assets/iconfont";
 
 import { createEffect, createReactive } from "./core/reactive";
-import { createApp } from "./core/render";
+import { createApp } from "./core";
 
 // const [text1, setText1] = createReactive("text1");
 // const [text2, setText2] = createReactive("text2");

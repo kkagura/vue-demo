@@ -1,4 +1,4 @@
-import { RenderElement } from ".";
+import { RenderElement } from "./render";
 import { nextFrame } from "../utils";
 import { Component, getCurrentInstance, useEmit } from "./component";
 

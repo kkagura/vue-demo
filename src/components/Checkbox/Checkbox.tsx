@@ -1,4 +1,4 @@
-import { Component, useEmit } from "@/core/render/component";
+import { Component, useEmit } from "@/core";
 import { useNamespace } from "@/utils/usNamespace";
 import "./checkbox.less";
 

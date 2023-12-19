@@ -1,4 +1,3 @@
-import { RenderContext } from "../render";
 import { VNode, Text, Slot } from "../vnode";
 
 export function h(

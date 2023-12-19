@@ -21,7 +21,7 @@ export interface RenderContext {
   renderSlot: (slotName: string, defaultNode?: any, scope?: any) => any;
 }
 
-function render(vnode: VNode | null, container: RenderElement) {
+export function render(vnode: VNode | null, container: RenderElement) {
   function unmount(vnode: VNode) {
     if (vnode.instance?.subtree) {
       unmount(vnode.instance.subtree);
@@ -363,15 +363,4 @@ function render(vnode: VNode | null, container: RenderElement) {
     if (container.__vnode) unmount(container.__vnode);
   }
   container.__vnode = vnode;
-}
-
-export function createApp(rootComponent: any) {
-  const app = {
-    mount(container: HTMLElement | null) {
-      if (!container) return;
-      const root = h(rootComponent, null, []);
-      render(root, container as RenderElement);
-    },
-  };
-  return app;
 }

@@ -1,15 +1,15 @@
-import {
-  Component,
-  getCurrentInstance,
-  useEmit,
-} from "@/core/render/component";
 import Overlay from "../Overlay/Overlay";
 import { useNamespace } from "@/utils/usNamespace";
 import Button from "../Button/Button";
 import "./dialog.less";
-import { createEffect } from "@/core/reactive";
-import { nextTick } from "@/core/scheduler";
-import Transition from "@/core/render/Transition.tsx";
+import {
+  Component,
+  getCurrentInstance,
+  useEmit,
+  Transition,
+  nextTick,
+  createEffect,
+} from "@/core";
 
 const ns = useNamespace("dialog");
 interface DialogProps {
