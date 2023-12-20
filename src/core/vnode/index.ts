@@ -1,6 +1,7 @@
 import { RenderElement } from "../runtime/render";
 import { ComponentInstance } from "../runtime/component";
 import { TransitionHook } from "../runtime/Transition";
+import { App } from "../app";
 
 export interface VNodeProps {
   [key: string]: any;

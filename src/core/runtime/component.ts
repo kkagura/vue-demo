@@ -1,6 +1,8 @@
 import { RenderContext } from "./render";
 import { ReactiveEffect, Reader, Writer } from "../reactive";
 import { VNode } from "../vnode";
+import { AppContext } from "../app";
+import { Provides } from "./inject";
 export interface ComponentInstance<Props = any> {
   effectState: ReactiveEffect | null;
   propState: {
@@ -10,6 +12,9 @@ export interface ComponentInstance<Props = any> {
   subtree: VNode | null;
   vnode: VNode;
   update: Function;
+  parent: ComponentInstance | null;
+  appContext: AppContext;
+  provides: Provides;
 }
 
 export type Component<T> = (

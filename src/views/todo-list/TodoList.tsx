@@ -1,5 +1,4 @@
-import { createReactive } from "@/core/reactive";
-import { Component } from "@/core/render/component";
+import { Component, createReactive } from "@/core";
 import TodoItemView from "./components/TodoItem";
 import "./todoList.less";
 import TodoForm from "./components/TodoForm";

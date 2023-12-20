@@ -1,7 +1,6 @@
 import Dialog from "@/components/Dialog/Dialog";
-import { Component, useEmit } from "@/core/render/component";
+import { Component, useEmit, createMemo, createReactive } from "@/core";
 import { TodoItem } from "../TodoList";
-import { createMemo, createReactive } from "@/core/reactive";
 import Input from "@/components/Input/Input";
 
 interface TodoFormProps {

@@ -1,3 +1,4 @@
+import { AppContext } from "../app";
 import { h } from "../h";
 import { createEffect, createReactive } from "../reactive";
 import { queueJob } from "../scheduler";
@@ -21,7 +22,11 @@ export interface RenderContext {
   renderSlot: (slotName: string, defaultNode?: any, scope?: any) => any;
 }
 
-export function render(vnode: VNode | null, container: RenderElement) {
+export function render(
+  vnode: VNode | null,
+  container: RenderElement,
+  appContext: AppContext
+) {
   function unmount(vnode: VNode) {
     if (vnode.instance?.subtree) {
       unmount(vnode.instance.subtree);
@@ -149,12 +154,15 @@ export function render(vnode: VNode | null, container: RenderElement) {
     container: RenderElement,
     n1: VNode,
     n2: VNode,
+    parentComponent: ComponentInstance | null,
     isSvg: boolean
   ) {
     if (!Array.isArray(n1.children)) {
       if (Array.isArray(n2.children)) {
         container.textContent = "";
-        n2.children.forEach((child) => patch(null, child, container, isSvg));
+        n2.children.forEach((child) =>
+          patch(null, child, container, parentComponent, isSvg)
+        );
       } else {
         container.textContent = n2.children.toString();
       }
@@ -171,10 +179,16 @@ export function render(vnode: VNode | null, container: RenderElement) {
         if ((oldChild as VNode)?.__vnode) {
           if ((newChild as VNode).__vnode) {
             if (isSameVNode(oldChild, newChild)) {
-              patch(oldChild as VNode, newChild as VNode, container, isSvg);
+              patch(
+                oldChild as VNode,
+                newChild as VNode,
+                container,
+                parentComponent,
+                isSvg
+              );
             } else {
               unmount(oldChild);
-              patch(null, newChild, container, isSvg);
+              patch(null, newChild, container, parentComponent, isSvg);
             }
           } else {
             unmount(oldChild);
@@ -183,7 +197,7 @@ export function render(vnode: VNode | null, container: RenderElement) {
           }
         } else {
           if ((newChild as VNode).__vnode) {
-            patch(null, newChild as VNode, container, isSvg);
+            patch(null, newChild as VNode, container, parentComponent, isSvg);
           } else {
             const textNode = document.createTextNode(newChild.toString());
             container.appendChild(textNode);
@@ -201,10 +215,15 @@ export function render(vnode: VNode | null, container: RenderElement) {
     }
   }
 
-  function patchElement(n1: VNode, n2: VNode, isSvg: boolean) {
+  function patchElement(
+    n1: VNode,
+    n2: VNode,
+    parentComponent: ComponentInstance | null,
+    isSvg: boolean
+  ) {
     const el = (n2.el = n1.el)!;
     patchProps(el, n1.props, n2.props, isSvg);
-    patchChildren(el, n1, n2, isSvg);
+    patchChildren(el, n1, n2, parentComponent, isSvg);
   }
 
   function normalizeSlots(node: VNode): Record<string, (scope: any) => any> {
@@ -240,6 +259,7 @@ export function render(vnode: VNode | null, container: RenderElement) {
   function mountElement(
     vnode: VNode,
     container: RenderElement,
+    parentComponent: ComponentInstance | null,
     isSvg: boolean
   ) {
     if (typeof vnode.type === "string") {
@@ -256,7 +276,7 @@ export function render(vnode: VNode | null, container: RenderElement) {
       transitionHook?.enter(el);
       if (Array.isArray(vnode.children)) {
         vnode.children.forEach((child) => {
-          patch(null, child as VNode, el, isSvg);
+          patch(null, child as VNode, el, parentComponent, isSvg);
         });
       } else {
         el.textContent = vnode.children.toString();
@@ -264,7 +284,11 @@ export function render(vnode: VNode | null, container: RenderElement) {
     }
   }
 
-  function mountComponent(vnode: VNode, container: RenderElement) {
+  function mountComponent(
+    vnode: VNode,
+    container: RenderElement,
+    parentComponent: ComponentInstance | null
+  ) {
     const [props, setProps] = createReactive(vnode.props);
 
     const renderContext: RenderContext = {
@@ -286,6 +310,11 @@ export function render(vnode: VNode | null, container: RenderElement) {
       subtree: null,
       vnode,
       update: () => {},
+      parent: parentComponent,
+      appContext,
+      provides: Object.create(
+        parentComponent ? parentComponent.provides : appContext.provides
+      ),
     });
     setCurrentInstance(instance);
     const render = (vnode.type as Function)(props());
@@ -297,7 +326,7 @@ export function render(vnode: VNode | null, container: RenderElement) {
       if (vnode.transitionHook) {
         subtree.transitionHook = vnode.transitionHook;
       }
-      patch(instance.subtree, subtree, container, false);
+      patch(instance.subtree, subtree, container, instance, false);
       instance.subtree = subtree;
     }
     instance.update = renderEffect;
@@ -322,6 +351,7 @@ export function render(vnode: VNode | null, container: RenderElement) {
     n1: VNode | null,
     n2: VNode,
     container: RenderElement,
+    parentComponent: ComponentInstance | null,
     isSvg: boolean
   ) {
     if (n1 && n1.type !== n2?.type) {
@@ -333,13 +363,13 @@ export function render(vnode: VNode | null, container: RenderElement) {
     isSvg = isSvg || type === "svg";
     if (typeof type === "string") {
       if (!n1) {
-        mountElement(n2, container, isSvg);
+        mountElement(n2, container, parentComponent, isSvg);
       } else {
-        patchElement(n1, n2, isSvg);
+        patchElement(n1, n2, parentComponent, isSvg);
       }
     } else if (typeof type === "function") {
       if (!n1) {
-        mountComponent(n2, container);
+        mountComponent(n2, container, parentComponent);
       } else {
         patchComponent(n1, n2, container);
       }
@@ -358,7 +388,7 @@ export function render(vnode: VNode | null, container: RenderElement) {
     }
   }
   if (vnode) {
-    patch(container.__vnode, vnode, container, false);
+    patch(container.__vnode, vnode, container, null, false);
   } else {
     if (container.__vnode) unmount(container.__vnode);
   }

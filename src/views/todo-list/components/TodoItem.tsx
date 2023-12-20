@@ -1,4 +1,4 @@
-import { Component, useEmit } from "@/core/render/component";
+import { Component, useEmit } from "@/core";
 import { TodoItem, TodoStatus } from "../TodoList";
 import Checkbox from "@/components/Checkbox/Checkbox";
 
