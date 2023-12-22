@@ -7,14 +7,23 @@ import { ComponentInstance, setCurrentInstance } from "./component";
 const svgNS = "http://www.w3.org/2000/svg";
 const xlinkNS = "http://www.w3.org/1999/xlink";
 
-interface EventInvoker {
-  origin: Function;
-  wrapper: (this: HTMLElement, e: unknown) => void;
+export interface RenderNode {
+  [key: string]: any;
 }
 
-export interface RenderElement extends HTMLElement {
-  __vnode: VNode | null;
-  __invokers: Record<string, EventInvoker>;
+export interface RenderElement extends RenderNode {}
+
+export interface RenderOptions<
+  HostNode = RenderNode,
+  HostElement = RenderElement
+> {
+  remove(el: HostNode): void;
+  insert(el: HostNode, container: HostElement, anchor?: HostNode | null): void;
+  createElement(type: string, isSvg: boolean): HostElement;
+  createText(text: string): HostNode;
+  createComment(comment: string): HostNode;
+  setText(node: HostNode, text: string): void;
+  patchProp(el: HostElement, key: string, newValue: any, isSvg: boolean): void;
 }
 
 export interface RenderContext {
@@ -25,8 +34,11 @@ export interface RenderContext {
 export function render(
   vnode: VNode | null,
   container: RenderElement,
-  appContext: AppContext
+  appContext: AppContext,
+  options: RenderOptions
 ) {
+  const { patchProp, insert, remove, createElement, createText, setText } =
+    options;
   function unmount(vnode: VNode) {
     if (vnode.instance?.subtree) {
       unmount(vnode.instance.subtree);
@@ -35,91 +47,13 @@ export function render(
     const el = vnode.el;
     if (el) {
       const performanceRemove = () => {
-        el.parentNode?.removeChild(el);
+        remove(el);
       };
       const { transitionHook } = vnode;
       if (transitionHook) {
         transitionHook.leave(el, performanceRemove);
       } else {
         performanceRemove();
-      }
-    }
-  }
-
-  function normalizeCls(clsValue: any) {
-    let classArray: string[] = [];
-    if (Array.isArray(clsValue)) {
-      classArray = clsValue.filter(Boolean);
-    } else if (typeof clsValue === "object") {
-      const keys = Object.keys(clsValue);
-      const cls: any = [];
-      keys.forEach((el) => {
-        if (!!clsValue[el]) {
-          cls.push(el);
-        }
-      });
-      classArray = cls.filter(Boolean);
-    } else if (typeof clsValue === "string") {
-      classArray = [clsValue];
-    }
-    classArray = [...new Set(classArray)];
-    return classArray;
-  }
-
-  function patchProp(
-    el: RenderElement,
-    key: string,
-    newValue: any,
-    isSvg: boolean
-  ) {
-    // on开头的当作事件去处理
-    if (/^on/.test(key)) {
-      const invokers = el.__invokers || (el.__invokers = {});
-      let invoker = invokers[key];
-      const eventName = key.slice(2).toLowerCase();
-      if (newValue) {
-        if (!invoker) {
-          invoker = {
-            origin: newValue,
-            wrapper: function (ev: unknown) {
-              invoker.origin(ev);
-            },
-          };
-          el.addEventListener(eventName, invoker.wrapper);
-          invokers[key] = invoker;
-        } else {
-          invoker.origin = newValue;
-        }
-      } else {
-        if (invoker) {
-          el.removeEventListener(eventName, invoker.wrapper);
-        }
-      }
-    } else if (key === "class") {
-      const cls = normalizeCls(newValue).join(" ");
-      if (!cls) {
-        el.removeAttribute("class");
-      } else if (isSvg) {
-        el.setAttribute("class", cls);
-      } else {
-        el.className = cls;
-      }
-    } else if (key in el) {
-      (el as any)[key] = newValue;
-    } else {
-      const useNs = key.startsWith("xlink:");
-      if (newValue == null) {
-        if (isSvg && useNs) {
-          el.removeAttributeNS(xlinkNS, key.slice(6, key.length));
-        } else {
-          el.removeAttribute(key);
-        }
-      } else {
-        if (isSvg && useNs) {
-          el.setAttributeNS(xlinkNS, key, newValue);
-        } else {
-          el.setAttribute(key, newValue);
-        }
       }
     }
   }
@@ -159,18 +93,18 @@ export function render(
   ) {
     if (!Array.isArray(n1.children)) {
       if (Array.isArray(n2.children)) {
-        container.textContent = "";
+        setText(container, "");
         n2.children.forEach((child) =>
           patch(null, child, container, parentComponent, isSvg)
         );
       } else {
-        container.textContent = n2.children.toString();
+        setText(container, n2.children.toString());
       }
     } else if (!Array.isArray(n2.children)) {
       if (Array.isArray(n1.children)) {
         n1.children.forEach((child) => unmount(child));
       }
-      container.textContent = n2.children.toString();
+      setText(container, n2.children.toString());
     } else {
       let i = 0;
       while (i < n2.children.length) {
@@ -192,15 +126,15 @@ export function render(
             }
           } else {
             unmount(oldChild);
-            const textNode = document.createTextNode(newChild.toString());
-            container.appendChild(textNode);
+            const textNode = createText(newChild.toString());
+            insert(textNode, container);
           }
         } else {
           if ((newChild as VNode).__vnode) {
             patch(null, newChild as VNode, container, parentComponent, isSvg);
           } else {
-            const textNode = document.createTextNode(newChild.toString());
-            container.appendChild(textNode);
+            const textNode = createText(newChild.toString());
+            insert(textNode, container);
           }
         }
         i += 1;
@@ -264,22 +198,18 @@ export function render(
   ) {
     if (typeof vnode.type === "string") {
       const { transitionHook } = vnode;
-      const el = (
-        isSvg
-          ? document.createElementNS(svgNS, vnode.type)
-          : document.createElement(vnode.type)
-      ) as RenderElement;
+      const el = createElement(vnode.type as string, isSvg);
       vnode.el = el;
       patchProps(el, null, vnode.props, isSvg);
       transitionHook?.beforeEnter(el);
-      container.appendChild(el);
+      insert(el, container);
       transitionHook?.enter(el);
       if (Array.isArray(vnode.children)) {
         vnode.children.forEach((child) => {
           patch(null, child as VNode, el, parentComponent, isSvg);
         });
       } else {
-        el.textContent = vnode.children.toString();
+        setText(el, vnode.children.toString());
       }
     }
   }
@@ -375,14 +305,12 @@ export function render(
       }
     } else if (type === Text) {
       if (!n1) {
-        const el = (n2.el = document.createTextNode(
-          n2.children.toString()
-        ) as any);
-        container.appendChild(el);
+        const el = (n2.el = createText(n2.children.toString()) as any);
+        insert(el, container);
       } else {
         const el = (n2.el = n1.el)!;
         if (n1.children !== n2.children) {
-          el.textContent = n2.children.toString();
+          setText(el, n2.children.toString());
         }
       }
     }

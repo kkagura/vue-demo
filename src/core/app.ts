@@ -1,6 +1,7 @@
 import { h } from "./h";
 import { InjectionKey, Provides } from "./runtime/inject";
 import { render, RenderElement } from "./runtime/render";
+import domRenderOptions from "./runtime/internals/dom";
 
 export interface App {
   appContext: AppContext;
@@ -24,7 +25,7 @@ export function createApp(rootComponent: any) {
       if (!container) return;
       appContext.app = app;
       const root = h(rootComponent, null, []);
-      render(root, container as RenderElement, appContext);
+      render(root, container as RenderElement, appContext, domRenderOptions);
     },
     provide(key, value) {
       appContext.provides[key as string | symbol] = value;
