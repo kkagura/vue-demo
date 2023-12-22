@@ -11,16 +11,14 @@ export interface TodoItem {
   name: string;
 }
 
-const todoListOrigin: TodoItem[] = [
-  {
-    status: "resolved",
-    name: "待办AAAAAA",
-  },
-  {
-    status: "todo",
-    name: "待办BBBBBB",
-  },
-];
+let todoListOrigin: TodoItem[] = [];
+const storageCacheKey = "todolist-cache";
+const cacheJson = localStorage.getItem(storageCacheKey);
+if (cacheJson) {
+  try {
+    todoListOrigin = JSON.parse(cacheJson);
+  } catch (error) {}
+}
 
 const TodoList: Component<{}> = () => {
   const [todoList, setTodoList] = createReactive(todoListOrigin);
@@ -66,12 +64,19 @@ const TodoList: Component<{}> = () => {
     }
   };
 
+  const handleSaveCache = () => {
+    localStorage.setItem(storageCacheKey, JSON.stringify(todoList()));
+  };
+
   return () => {
     return (
       <div class="todo-list">
         <div>
           <Button onClick={handleAdd} type="primary">
             新增待办
+          </Button>
+          <Button onClick={handleSaveCache} type="primary">
+            保存
           </Button>
         </div>
         <div class="todo-list-wrapper">
