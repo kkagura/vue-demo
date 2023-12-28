@@ -9,6 +9,7 @@ import {
   Transition,
   nextTick,
   createEffect,
+  Teleport,
 } from "@/core";
 
 const ns = useNamespace("dialog");
@@ -19,6 +20,7 @@ interface DialogProps {
   onOpen?: () => void;
   title?: string;
   width?: string;
+  appendToBody?: boolean;
 }
 
 const Dialog: Component<DialogProps> = (props) => {
@@ -49,26 +51,29 @@ const Dialog: Component<DialogProps> = (props) => {
         </Button>
       </div>
     );
+    const appendToBody = props.appendToBody === true;
     return (
-      <Transition name="dialog-fade" type="animation">
+      <Teleport to="body" disabled={!appendToBody}>
         {props.visible ? (
-          <Overlay onClose={onClose} visible={props.visible}>
-            <div className={ns.b("overlay")}>
-              <div style={widthStyle} class={ns.b()}>
-                <div class={ns.e("header")}>
-                  <span class={ns.e("title")}>{props.title || ""}</span>
-                </div>
-                <div class={ns.e("content")}>
-                  {context.renderSlot("default")}
-                </div>
-                <div class={ns.e("footer")}>
-                  {context.renderSlot("footer", defaultFooter)}
+          <Transition name="dialog-fade" type="animation">
+            <Overlay onClose={onClose} visible={props.visible}>
+              <div className={ns.b("overlay")}>
+                <div style={widthStyle} class={ns.b()}>
+                  <div class={ns.e("header")}>
+                    <span class={ns.e("title")}>{props.title || ""}</span>
+                  </div>
+                  <div class={ns.e("content")}>
+                    {context.renderSlot("default")}
+                  </div>
+                  <div class={ns.e("footer")}>
+                    {context.renderSlot("footer", defaultFooter)}
+                  </div>
                 </div>
               </div>
-            </div>
-          </Overlay>
+            </Overlay>
+          </Transition>
         ) : null}
-      </Transition>
+      </Teleport>
     );
   };
 };

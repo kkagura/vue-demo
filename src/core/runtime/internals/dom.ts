@@ -103,6 +103,9 @@ const internals: RenderOptions<Node, Element> = {
       }
     }
   },
+  querySelector(selector) {
+    return document.querySelector(selector);
+  },
 };
 
 export default internals;

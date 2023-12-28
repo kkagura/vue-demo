@@ -43,6 +43,7 @@ const TodoForm: Component<TodoFormProps> = (props) => {
         onClose={onClose}
         visible={props.visible}
         onOpen={onOpen}
+        appendToBody={true}
       >
         <div className="form">
           <div className="form-item">

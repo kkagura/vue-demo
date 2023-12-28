@@ -1,5 +1,5 @@
 import { RenderElement } from "../runtime/render";
-import { ComponentInstance } from "../runtime/component";
+import { Component, ComponentInstance } from "../runtime/component";
 import { TransitionHook } from "../runtime/Transition";
 import { App } from "../app";
 
@@ -12,7 +12,7 @@ export const Fragment = Symbol();
 export const Slot = "w:slot";
 
 export interface VNode {
-  type: string | Function | Symbol;
+  type: string | Symbol | Component<unknown>;
   props: VNodeProps | null;
   children: VNode[] | any;
   el: RenderElement | null;

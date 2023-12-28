@@ -1,4 +1,12 @@
-import { RenderContext } from "./render";
+import {
+  Move,
+  Patch,
+  PatchChildren,
+  RenderContext,
+  RenderElement,
+  RenderOptions,
+  Unmount,
+} from "./render";
 import { ReactiveEffect, Reader, Writer } from "../reactive";
 import { VNode } from "../vnode";
 import { AppContext } from "../app";
@@ -17,9 +25,25 @@ export interface ComponentInstance<Props = any> {
   provides: Provides;
 }
 
-export type Component<T> = (
-  props: T
-) => (context: RenderContext) => JSX.IntrinsicElements;
+export interface ComponentProcess {
+  (
+    n1: VNode | null,
+    n2: VNode | null,
+    container: RenderElement,
+    parentComponent: ComponentInstance | null,
+    internals: {
+      patch: Patch;
+      patchChildren: PatchChildren;
+      unmount: Unmount;
+      move: Move;
+      nodeOps: RenderOptions;
+    }
+  ): void;
+}
+export interface Component<T> {
+  (props: T): (context: RenderContext) => JSX.IntrinsicElements;
+  process?: ComponentProcess;
+}
 
 let currentInstance: ComponentInstance | null = null;
 

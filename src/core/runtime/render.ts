@@ -4,8 +4,6 @@ import { createEffect, createReactive } from "../reactive";
 import { queueJob } from "../scheduler";
 import { Slot, Text, VNode, VNodeProps } from "../vnode";
 import { ComponentInstance, setCurrentInstance } from "./component";
-const svgNS = "http://www.w3.org/2000/svg";
-const xlinkNS = "http://www.w3.org/1999/xlink";
 
 export interface RenderNode {
   [key: string]: any;
@@ -24,11 +22,40 @@ export interface RenderOptions<
   createComment(comment: string): HostNode;
   setText(node: HostNode, text: string): void;
   patchProp(el: HostElement, key: string, newValue: any, isSvg: boolean): void;
+  querySelector(selector: string): RenderElement | null;
 }
 
 export interface RenderContext {
   slots: Record<string, (scope: any) => any>;
   renderSlot: (slotName: string, defaultNode?: any, scope?: any) => any;
+}
+
+export interface Patch {
+  (
+    n1: VNode | null,
+    n2: VNode,
+    container: RenderElement,
+    parentComponent: ComponentInstance | null,
+    isSvg: boolean
+  ): void;
+}
+
+export interface Unmount {
+  (vnode: VNode): void;
+}
+
+export interface Move {
+  (vnode: VNode, container: RenderElement, anchor?: RenderElement | null): void;
+}
+
+export interface PatchChildren {
+  (
+    container: RenderElement,
+    n1: VNode,
+    n2: VNode,
+    parentComponent: ComponentInstance | null,
+    isSvg: boolean
+  ): void;
 }
 
 export function render(
@@ -39,7 +66,7 @@ export function render(
 ) {
   const { patchProp, insert, remove, createElement, createText, setText } =
     options;
-  function unmount(vnode: VNode) {
+  const unmount: Unmount = (vnode: VNode) => {
     if (vnode.instance?.subtree) {
       unmount(vnode.instance.subtree);
       return;
@@ -56,7 +83,7 @@ export function render(
         performanceRemove();
       }
     }
-  }
+  };
 
   function patchProps(
     el: RenderElement,
@@ -84,13 +111,13 @@ export function render(
     return n1.type === n2.type;
   }
 
-  function patchChildren(
+  const patchChildren: PatchChildren = (
     container: RenderElement,
     n1: VNode,
     n2: VNode,
     parentComponent: ComponentInstance | null,
     isSvg: boolean
-  ) {
+  ) => {
     if (!Array.isArray(n1.children)) {
       if (Array.isArray(n2.children)) {
         setText(container, "");
@@ -147,7 +174,7 @@ export function render(
         i++;
       }
     }
-  }
+  };
 
   function patchElement(
     n1: VNode,
@@ -277,13 +304,13 @@ export function render(
     }
   }
 
-  function patch(
+  const patch: Patch = (
     n1: VNode | null,
     n2: VNode,
     container: RenderElement,
     parentComponent: ComponentInstance | null,
     isSvg: boolean
-  ) {
+  ) => {
     if (n1 && n1.type !== n2?.type) {
       unmount(n1);
       n1 = null;
@@ -298,10 +325,32 @@ export function render(
         patchElement(n1, n2, parentComponent, isSvg);
       }
     } else if (typeof type === "function") {
-      if (!n1) {
-        mountComponent(n2, container, parentComponent);
+      if (type.process) {
+        type.process(n1, n2, container, parentComponent, {
+          patch,
+          patchChildren,
+          unmount,
+          move(vnode, container, anchor) {
+            let instance: ComponentInstance | null = vnode.instance;
+            let subtree: VNode | null = vnode;
+            while (instance) {
+              subtree = instance.subtree;
+              if (subtree) {
+                instance = subtree.instance;
+              }
+            }
+            if (subtree) {
+              insert(subtree.el!, container, anchor);
+            }
+          },
+          nodeOps: options,
+        });
       } else {
-        patchComponent(n1, n2, container);
+        if (!n1) {
+          mountComponent(n2, container, parentComponent);
+        } else {
+          patchComponent(n1, n2, container);
+        }
       }
     } else if (type === Text) {
       if (!n1) {
@@ -314,7 +363,7 @@ export function render(
         }
       }
     }
-  }
+  };
   if (vnode) {
     patch(container.__vnode, vnode, container, null, false);
   } else {
