@@ -3,7 +3,11 @@ import { h } from "../h";
 import { createEffect, createReactive } from "../reactive";
 import { queueJob } from "../scheduler";
 import { Slot, Text, VNode, VNodeProps } from "../vnode";
-import { ComponentInstance, setCurrentInstance } from "./component";
+import {
+  ComponentInstance,
+  callLifeCycles,
+  setCurrentInstance,
+} from "./component";
 
 export interface RenderNode {
   [key: string]: any;
@@ -68,7 +72,9 @@ export function render(
     options;
   const unmount: Unmount = (vnode: VNode) => {
     if (vnode.instance?.subtree) {
+      callLifeCycles(vnode.instance.hooks.beforeUnmount);
       unmount(vnode.instance.subtree);
+      callLifeCycles(vnode.instance.hooks.unmounted);
       return;
     }
     const el = vnode.el;
@@ -272,6 +278,15 @@ export function render(
       provides: Object.create(
         parentComponent ? parentComponent.provides : appContext.provides
       ),
+      hooks: {
+        beforeMount: [],
+        mounted: [],
+        beforeUnmount: [],
+        unmounted: [],
+        beforeUpdate: [],
+        updated: [],
+      },
+      isMounted: false,
     });
     setCurrentInstance(instance);
     const render = (vnode.type as Function)(props());
@@ -283,7 +298,16 @@ export function render(
       if (vnode.transitionHook) {
         subtree.transitionHook = vnode.transitionHook;
       }
-      patch(instance.subtree, subtree, container, instance, false);
+      if (instance.isMounted) {
+        callLifeCycles(instance.hooks.beforeUpdate);
+        patch(instance.subtree, subtree, container, instance, false);
+        callLifeCycles(instance.hooks.updated);
+      } else {
+        callLifeCycles(instance.hooks.beforeMount);
+        patch(instance.subtree, subtree, container, instance, false);
+        instance.isMounted = true;
+        callLifeCycles(instance.hooks.mounted);
+      }
       instance.subtree = subtree;
     }
     instance.update = renderEffect;

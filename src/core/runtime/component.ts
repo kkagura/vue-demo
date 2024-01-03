@@ -11,6 +11,18 @@ import { ReactiveEffect, Reader, Writer } from "../reactive";
 import { VNode } from "../vnode";
 import { AppContext } from "../app";
 import { Provides } from "./inject";
+
+export interface LifeCycleHook {
+  (): void;
+}
+export interface ComponentLifeCycleHooks {
+  beforeMount: LifeCycleHook[];
+  mounted: LifeCycleHook[];
+  beforeUnmount: LifeCycleHook[];
+  unmounted: LifeCycleHook[];
+  beforeUpdate: LifeCycleHook[];
+  updated: LifeCycleHook[];
+}
 export interface ComponentInstance<Props = any> {
   effectState: ReactiveEffect | null;
   propState: {
@@ -23,6 +35,8 @@ export interface ComponentInstance<Props = any> {
   parent: ComponentInstance | null;
   appContext: AppContext;
   provides: Provides;
+  hooks: ComponentLifeCycleHooks;
+  isMounted: boolean;
 }
 
 export interface ComponentProcess {
@@ -69,4 +83,44 @@ export function useEmit<T = any>(): T {
     }
   }) as unknown as T;
   return emit;
+}
+
+export function onBeforeMount(hook: LifeCycleHook) {
+  const instance = getCurrentInstance();
+  if (!instance) return;
+  instance.hooks.beforeMount.push(hook);
+}
+
+export function onMounted(hook: LifeCycleHook) {
+  const instance = getCurrentInstance();
+  if (!instance) return;
+  instance.hooks.mounted.push(hook);
+}
+
+export function onBeforeUnmount(hook: LifeCycleHook) {
+  const instance = getCurrentInstance();
+  if (!instance) return;
+  instance.hooks.beforeUnmount.push(hook);
+}
+
+export function onUnmounted(hook: LifeCycleHook) {
+  const instance = getCurrentInstance();
+  if (!instance) return;
+  instance.hooks.unmounted.push(hook);
+}
+
+export function onBeforeUpdate(hook: LifeCycleHook) {
+  const instance = getCurrentInstance();
+  if (!instance) return;
+  instance.hooks.beforeUpdate.push(hook);
+}
+
+export function onUpdated(hook: LifeCycleHook) {
+  const instance = getCurrentInstance();
+  if (!instance) return;
+  instance.hooks.updated.push(hook);
+}
+
+export function callLifeCycles(lifeCycles: LifeCycleHook[]) {
+  lifeCycles.forEach((fn) => fn());
 }
