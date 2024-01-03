@@ -63,8 +63,8 @@ Teleport.process = function (
           to && (target = to);
         }
       }
-      n2.children.forEach((el: VNode) => {
-        move(el, target);
+      n2.children.forEach((vnode: VNode) => {
+        move(vnode, target);
       });
     } else {
       unmount(n1);

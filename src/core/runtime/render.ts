@@ -49,7 +49,7 @@ export interface Unmount {
 }
 
 export interface Move {
-  (vnode: VNode, container: RenderElement, anchor?: RenderElement | null): void;
+  (vnode: VNode, container: RenderElement): void;
 }
 
 export interface PatchChildren {
@@ -354,7 +354,7 @@ export function render(
           patch,
           patchChildren,
           unmount,
-          move(vnode, container, anchor) {
+          move(vnode, container) {
             let instance: ComponentInstance | null = vnode.instance;
             let subtree: VNode | null = vnode;
             while (instance) {
@@ -363,8 +363,8 @@ export function render(
                 instance = subtree.instance;
               }
             }
-            if (subtree) {
-              insert(subtree.el!, container, anchor);
+            if (subtree && subtree.el!.parentElement !== container) {
+              insert(subtree.el!, container);
             }
           },
           nodeOps: options,
