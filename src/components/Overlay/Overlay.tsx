@@ -2,20 +2,21 @@ import { Component, useEmit } from "@/core";
 import "./overlay.less";
 import { useNamespace } from "@/utils/usNamespace";
 
-const ns = useNamespace("overlay");
-
 interface OverlayProps {
   visible?: boolean;
   onClose?: () => void;
 }
 
 const Overlay: Component<OverlayProps> = (props) => {
+  const ns = useNamespace("overlay");
   const b = ns.b();
   const emit = useEmit<{
     (e: "close"): void;
   }>();
+  console.log(b);
   const onClickOverlay = (e: MouseEvent) => {
     const target = e.target;
+    console.log(target, b);
     if (target instanceof HTMLElement) {
       if (target.classList.contains(b)) {
         emit("close");

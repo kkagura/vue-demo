@@ -54,7 +54,7 @@ export interface ComponentProcess {
     }
   ): void;
 }
-export interface Component<T> {
+export interface Component<T = any> {
   (props: T): (context: RenderContext) => JSX.IntrinsicElements;
   process?: ComponentProcess;
 }

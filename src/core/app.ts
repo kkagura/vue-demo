@@ -1,12 +1,16 @@
 import { h } from "./h";
-import { InjectionKey, Provides } from "./runtime/inject";
+import { InjectionKey, Provides, inject, provide } from "./runtime/inject";
 import { render, RenderElement } from "./runtime/render";
 import domRenderOptions from "./runtime/internals/dom";
 
+export interface Plugin {
+  install(app: App): void;
+}
 export interface App {
   appContext: AppContext;
   mount(container: HTMLElement | null): void;
-  provide<T>(key: string | InjectionKey<T>, value: T): void;
+  provide: typeof provide;
+  use: (plugin: Plugin) => App;
 }
 
 export interface AppContext {
@@ -29,6 +33,10 @@ export function createApp(rootComponent: any) {
     },
     provide(key, value) {
       appContext.provides[key as string | symbol] = value;
+    },
+    use(plugin) {
+      plugin.install(app);
+      return app;
     },
   };
   return app;

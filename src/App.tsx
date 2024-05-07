@@ -1,6 +1,5 @@
-import TodoList from "./views/todo-list/TodoList";
-import TestTransition from "./views/test/TestTransition";
+import RouterView from "./router/RouterView";
 
 export const App = () => {
-  return () => <TodoList></TodoList>;
+  return () => <RouterView></RouterView>;
 };
